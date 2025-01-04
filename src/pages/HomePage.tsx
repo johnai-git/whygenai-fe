@@ -47,7 +47,7 @@ export function HomePage() {
           <Bot className="w-12 h-12 text-indigo-600" />
         </div>
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
-          Welcome to AgentHub
+          Welcome to Whygenai
         </h1>
         <p className="text-center text-gray-600 mb-8">
           Create and manage your AI agents in one place
