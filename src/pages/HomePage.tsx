@@ -30,6 +30,11 @@ export function HomePage() {
       const data = await response.json();
       console.log('API Response:', data);
 
+      // Save user_id and email in cookies
+      document.cookie = `user_id=${data.user_id}; path=/; max-age=86400; Secure; SameSite=Strict`;
+      document.cookie = `email=${data.email}; path=/; max-age=86400; Secure; SameSite=Strict`;
+      document.cookie = `is_verified=${data.is_verified}; path=/; max-age=86400; Secure; SameSite=Strict`;
+
       // Navigate to the VerifyPage and pass the email as state
       navigate('/verify', { state: { email } });
     } catch (err) {
