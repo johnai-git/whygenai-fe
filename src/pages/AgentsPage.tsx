@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Bot, ChevronDown } from 'lucide-react';
 import { Modal } from '../components/Modal';
 import { FileUpload } from '../components/FileUpload';
 import { uploadFile } from '../services/fileService';
 import { Agent } from '../types/agent';
+
 
 export function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -14,6 +15,48 @@ export function AgentsPage() {
     description: '',
     welcome_message: '',
   });
+  const [isLoading, setIsLoading] = useState(false); // New loading state
+
+  // Function to get user_id from cookies
+  const getUserIdFromCookies = (): string | null => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; user_id=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+    return null;
+  };
+
+  // Function to fetch agents based on user_id from the cookie
+  const fetchAgents = async () => {
+    const userId = getUserIdFromCookies();
+    if (!userId) {
+      console.error('User ID not found in cookies');
+      return;
+    }
+
+    setIsLoading(true); // Start loading
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/user-agents/${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch agents');
+      }
+      const fetchedAgents = await response.json();
+
+      // Debugging the fetched data
+      console.log('Fetched Agents:', fetchedAgents);
+
+      setAgents(fetchedAgents);
+    } catch (error) {
+      console.error('Error fetching agents:', error);
+    } finally {
+      setIsLoading(false); // End loading
+    }
+  };
+
+  // Fetch agents when the component mounts
+  useEffect(() => {
+    fetchAgents();
+  }, []);
 
   const handleLogout = () => {
     // Remove cookies
@@ -27,6 +70,12 @@ export function AgentsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const userId = getUserIdFromCookies();
+    if (!userId) {
+      console.error('User ID not found in cookies');
+      return;
+    }
+
     try {
       const response = await fetch('http://localhost:8000/create-agent', {
         method: 'POST',
@@ -44,6 +93,9 @@ export function AgentsPage() {
       setAgents([...agents, createdAgent]);
       setNewAgent({ name: '', description: '', welcome_message: '' });
       setIsModalOpen(false);
+
+      // Re-fetch the agents to include the newly created one
+      fetchAgents();
     } catch (error) {
       console.error('Error creating agent:', error);
     }
@@ -91,29 +143,41 @@ export function AgentsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {agents.map((agent) => (
-            <div
-              key={agent.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition duration-200"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-indigo-50 p-2 rounded-lg">
-                  <Bot className="w-6 h-6 text-indigo-600" />
+        {/* Show loading spinner if isLoading is true */}
+        {isLoading ? (
+          <div className="flex justify-center items-center space-x-2">
+            <div className="w-8 h-8 border-4 border-t-4 border-gray-200 border-solid rounded-full animate-spin border-t-indigo-600"></div>
+            <p className="text-gray-600">Loading agents...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {agents.map((agent) => {
+              console.log('Agent:', agent); // Debugging each agent's data
+              return (
+                <div
+                  key={agent?.agent_id}  // Use agent_id as the key
+                  className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition duration-200"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-indigo-50 p-2 rounded-lg">
+                      <Bot className="w-6 h-6 text-indigo-600" />
+                    </div>
+                    {/* Use agent_name instead of name */}
+                    <h3 className="text-xl font-semibold text-gray-900">{agent.agent_name}</h3> 
+                  </div>
+                  <p className="text-gray-700 mb-4 leading-relaxed">{agent.s3_bucket}</p>
+                  <div className="border-t border-gray-100 pt-4">
+                    <p className="text-sm font-medium text-gray-600 mb-2">S3 Bucket:</p>
+                    <p className="text-gray-800 bg-gray-50 p-3 rounded-lg text-sm">
+                      {agent.s3_bucket}
+                    </p>
+                  </div>
+                  <FileUpload agentId={agent.agent_id} onFileSelect={handleFileUpload} />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">{agent.name}</h3>
-              </div>
-              <p className="text-gray-700 mb-4 leading-relaxed">{agent.description}</p>
-              <div className="border-t border-gray-100 pt-4">
-                <p className="text-sm font-medium text-gray-600 mb-2">Welcome Message:</p>
-                <p className="text-gray-800 bg-gray-50 p-3 rounded-lg text-sm">
-                  {agent.welcomeMessage}
-                </p>
-              </div>
-              <FileUpload agentId={agent.id} onFileSelect={handleFileUpload} />
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Create New Agent</h2>
