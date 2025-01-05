@@ -11,19 +11,34 @@ export function AgentsPage() {
   const [newAgent, setNewAgent] = useState({
     name: '',
     description: '',
-    welcomeMessage: '',
+    welcome_message: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const agent: Agent = {
-      id: Date.now().toString(),
-      ...newAgent,
-    };
-    setAgents([...agents, agent]);
-    setNewAgent({ name: '', description: '', welcomeMessage: '' });
-    setIsModalOpen(false);
+  
+    try {
+      const response = await fetch("http://localhost:8000/create-agent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newAgent),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to create agent");
+      }
+  
+      const createdAgent = await response.json();
+      setAgents([...agents, createdAgent]);
+      setNewAgent({ name: '', description: '', welcome_message: '' });
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error creating agent:", error);
+    }
   };
+  
 
   const handleFileUpload = async (agentId: string, file: File) => {
     try {
@@ -105,8 +120,8 @@ export function AgentsPage() {
               </label>
               <textarea
                 id="welcomeMessage"
-                value={newAgent.welcomeMessage}
-                onChange={(e) => setNewAgent({ ...newAgent, welcomeMessage: e.target.value })}
+                value={newAgent.welcome_message}
+                onChange={(e) => setNewAgent({ ...newAgent, welcome_message: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 rows={2}
                 required
