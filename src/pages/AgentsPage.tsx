@@ -75,31 +75,37 @@ export function AgentsPage() {
       console.error('User ID not found in cookies');
       return;
     }
-
+  
+    const payload = {
+      ...newAgent, // Spread the newAgent data (name, description, welcome_message)
+      user_id: userId, // Add the user_id to the payload
+    };
+  
     try {
-      const response = await fetch('http://localhost:8000/create-agent', {
+      const response = await fetch('http://127.0.0.1:8000/create-agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newAgent),
+        body: JSON.stringify(payload), // Use the updated payload
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to create agent');
       }
-
+  
       const createdAgent = await response.json();
       setAgents([...agents, createdAgent]);
       setNewAgent({ name: '', description: '', welcome_message: '' });
       setIsModalOpen(false);
-
+  
       // Re-fetch the agents to include the newly created one
       fetchAgents();
     } catch (error) {
       console.error('Error creating agent:', error);
     }
   };
+  
 
   const handleFileUpload = async (agentId: string, file: File) => {
     try {
