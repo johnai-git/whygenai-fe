@@ -36,7 +36,7 @@ export function AgentsPage() {
     setIsLoading(true); // Start loading
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/user-agents/${userId}`);
+      const response = await fetch(`http://54.243.34.91:8000/user-agents/${userId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch agents');
       }
@@ -82,7 +82,7 @@ export function AgentsPage() {
     };
   
     try {
-      const response = await fetch('http://127.0.0.1:8000/create-agent', {
+      const response = await fetch('http://54.243.34.91:8000/create-agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
