@@ -181,7 +181,7 @@ export function AgentsPage() {
                     <p className="text-sm font-medium text-gray-600 mb-2">S3 Bucket:</p>
                     <p className="text-gray-800 bg-gray-50 p-3 rounded-lg text-sm">{agent.s3_bucket}</p>
                   </div>
-                  <FileUpload agentId={agent.agent_id} onFileSelect={handleFileUpload} />
+                  <FileUpload bucket_name={agent.s3_bucket} onFileSelect={handleFileUpload} />
                 </div>
               );
             })}
