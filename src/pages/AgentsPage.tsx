@@ -4,7 +4,7 @@ import { Modal } from '../components/Modal';
 import { FileUpload } from '../components/FileUpload';
 import { uploadFile } from '../services/fileService';
 import { Agent } from '../types/agent';
-
+import { ToastContainer, toast } from 'react-toastify';
 
 export function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -15,9 +15,11 @@ export function AgentsPage() {
     description: '',
     welcome_message: '',
   });
-  const [isLoading, setIsLoading] = useState(false); // New loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isSuccessMessageVisible, setIsSuccessMessageVisible] = useState(false); // Success message state
 
-  // Function to get user_id from cookies
   const getUserIdFromCookies = (): string | null => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; user_id=`);
@@ -25,7 +27,7 @@ export function AgentsPage() {
     return null;
   };
 
-  // Function to fetch agents based on user_id from the cookie
+  console.log({errorMessage});
   const fetchAgents = async () => {
     const userId = getUserIdFromCookies();
     if (!userId) {
@@ -33,7 +35,7 @@ export function AgentsPage() {
       return;
     }
 
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
 
     try {
       const response = await fetch(`http://54.243.34.91:8000/user-agents/${userId}`);
@@ -41,31 +43,24 @@ export function AgentsPage() {
         throw new Error('Failed to fetch agents');
       }
       const fetchedAgents = await response.json();
-
-      // Debugging the fetched data
-      console.log('Fetched Agents:', fetchedAgents);
-
       setAgents(fetchedAgents);
     } catch (error) {
       console.error('Error fetching agents:', error);
     } finally {
-      setIsLoading(false); // End loading
+      setIsLoading(false);
     }
   };
 
-  // Fetch agents when the component mounts
   useEffect(() => {
     fetchAgents();
   }, []);
 
   const handleLogout = () => {
-    // Remove cookies
     document.cookie = 'user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
     document.cookie = 'email=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
     document.cookie = 'is_verified=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
     console.log('User logged out and cookies cleared');
-    // Optionally, redirect the user to a login page
-    window.location.href = '/'; // Update with the actual login route
+    window.location.href = '/';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,37 +70,50 @@ export function AgentsPage() {
       console.error('User ID not found in cookies');
       return;
     }
-  
+
     const payload = {
-      ...newAgent, // Spread the newAgent data (name, description, welcome_message)
-      user_id: userId, // Add the user_id to the payload
+      ...newAgent,
+      user_id: userId,
     };
-  
+
+    setIsCreatingAgent(true);
+    setErrorMessage(''); // Clear previous errors
+
     try {
       const response = await fetch('http://54.243.34.91:8000/create-agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload), // Use the updated payload
+        body: JSON.stringify(payload),
       });
-  
+
       if (!response.ok) {
-        throw new Error('Failed to create agent');
+        if (response.status === 409) {
+          const data = await response.json();
+          setErrorMessage(data.detail); // Set error message when conflict occurs
+        } else {
+          throw new Error('Failed to create agent');
+        }
+      } else {
+        const createdAgent = await response.json();
+        setAgents([...agents, createdAgent]);
+        setNewAgent({ name: '', description: '', welcome_message: '' });
+        setIsModalOpen(false);
+        fetchAgents();
+        toast.success('Agent created successfully!');
+
+        // Show success message
+        setIsSuccessMessageVisible(true);
+        // Hide the success message after 3 seconds
+        setTimeout(() => setIsSuccessMessageVisible(false), 3000);
       }
-  
-      const createdAgent = await response.json();
-      setAgents([...agents, createdAgent]);
-      setNewAgent({ name: '', description: '', welcome_message: '' });
-      setIsModalOpen(false);
-  
-      // Re-fetch the agents to include the newly created one
-      fetchAgents();
     } catch (error) {
       console.error('Error creating agent:', error);
+    } finally {
+      setIsCreatingAgent(false);
     }
   };
-  
 
   const handleFileUpload = async (agentId: string, file: File) => {
     try {
@@ -149,7 +157,6 @@ export function AgentsPage() {
           </div>
         </div>
 
-        {/* Show loading spinner if isLoading is true */}
         {isLoading ? (
           <div className="flex justify-center items-center space-x-2">
             <div className="w-8 h-8 border-4 border-t-4 border-gray-200 border-solid rounded-full animate-spin border-t-indigo-600"></div>
@@ -158,25 +165,21 @@ export function AgentsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {agents.map((agent) => {
-              console.log('Agent:', agent); // Debugging each agent's data
               return (
                 <div
-                  key={agent?.agent_id}  // Use agent_id as the key
+                  key={agent?.agent_id}
                   className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition duration-200"
                 >
                   <div className="flex items-center gap-3 mb-4">
                     <div className="bg-indigo-50 p-2 rounded-lg">
                       <Bot className="w-6 h-6 text-indigo-600" />
                     </div>
-                    {/* Use agent_name instead of name */}
-                    <h3 className="text-xl font-semibold text-gray-900">{agent.agent_name}</h3> 
+                    <h3 className="text-xl font-semibold text-gray-900">{agent.agent_name}</h3>
                   </div>
                   <p className="text-gray-700 mb-4 leading-relaxed">{agent.s3_bucket}</p>
                   <div className="border-t border-gray-100 pt-4">
                     <p className="text-sm font-medium text-gray-600 mb-2">S3 Bucket:</p>
-                    <p className="text-gray-800 bg-gray-50 p-3 rounded-lg text-sm">
-                      {agent.s3_bucket}
-                    </p>
+                    <p className="text-gray-800 bg-gray-50 p-3 rounded-lg text-sm">{agent.s3_bucket}</p>
                   </div>
                   <FileUpload agentId={agent.agent_id} onFileSelect={handleFileUpload} />
                 </div>
@@ -185,14 +188,18 @@ export function AgentsPage() {
           </div>
         )}
 
+        {/* Success notification */}
+        {isSuccessMessageVisible && (
+          <div className="fixed top-0 left-0 right-0 z-50 p-4 bg-green-500 text-white text-center">
+            <p>Agent created successfully!</p>
+          </div>
+        )}
+
         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Create New Agent</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                 Agent Name
               </label>
               <input
@@ -205,10 +212,7 @@ export function AgentsPage() {
               />
             </div>
             <div>
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
                 Description
               </label>
               <textarea
@@ -252,12 +256,21 @@ export function AgentsPage() {
                 type="submit"
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
               >
-                Create Agent
+                {isCreatingAgent ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-4 h-4 border-4 border-t-4 border-gray-200 border-solid rounded-full animate-spin border-t-indigo-600"></div>
+                    <span className="ml-2">Creating...</span>
+                  </div>
+                ) : (
+                  'Create Agent'
+                )}
               </button>
             </div>
           </form>
         </Modal>
       </div>
+      <ToastContainer />
+
     </div>
   );
 }
