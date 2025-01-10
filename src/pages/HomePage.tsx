@@ -113,7 +113,7 @@ export function HomePage() {
 
     try {
       // First, check if the user is verified by calling the new API
-      const verificationResponse = await fetch('http://127.0.0.1:8000/is-user-verified/', {
+      const verificationResponse = await fetch('http://54.243.34.91:8000/is-user-verified/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,7 +143,7 @@ export function HomePage() {
       }
 
       // If user is not verified, proceed to send the code
-      const response = await fetch('http://127.0.0.1:8000/send-code', {
+      const response = await fetch('http://54.243.34.91:8000/send-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -39,6 +39,7 @@ export function AgentsPage() {
 
     try {
       const response = await fetch(`http://54.243.34.91:8000/user-agents/${userId}`);
+      // const response = await fetch(`http://127.0.0.1:8001/user-agents/${userId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch agents');
       }
@@ -80,6 +81,7 @@ export function AgentsPage() {
     setErrorMessage(''); // Clear previous errors
 
     try {
+      // const response = await fetch('http://127.0.0.1:8001/create-agent', {
       const response = await fetch('http://54.243.34.91:8000/create-agent', {
         method: 'POST',
         headers: {
@@ -101,7 +103,7 @@ export function AgentsPage() {
         setNewAgent({ name: '', description: '', welcome_message: '' });
         setIsModalOpen(false);
         fetchAgents();
-        toast.success('Agent created successfully!');
+        toast.success('Agent Created Successfully!');
 
         // Show success message
         setIsSuccessMessageVisible(true);
@@ -187,15 +189,7 @@ export function AgentsPage() {
             })}
           </div>
         )}
-
-        {/* Success notification */}
-        {isSuccessMessageVisible && (
-          <div className="fixed top-0 left-0 right-0 z-50 p-4 bg-green-500 text-white text-center">
-            <p>Agent created successfully!</p>
-          </div>
-        )}
-
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Create New Agent</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
