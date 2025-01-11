@@ -10,15 +10,19 @@ export function FileUpload({ bucket_name, onFileSelect }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    console.log(e.target.files);
     const file = e.target.files?.[0];
     if (file) {
       setIsUploading(true);
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('bucket_name', bucket_name); // Add bucket name to the request
+      formData.append('bucket_name', bucket_name.toLocaleLowerCase()); // Add bucket name to the request
+      console.log({formData})
+      console.log({bucket_name})
   
       try {
         const response = await fetch('http://54.243.34.91:8000/upload/', {
+        // const response = await fetch('http://127.0.0.1:8000/upload/', {
           method: 'POST',
           body: formData, // Include the FormData with both file and bucket name
         });
