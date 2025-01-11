@@ -27,7 +27,7 @@ export function AgentsPage() {
     return null;
   };
 
-  console.log({errorMessage});
+  console.log({ errorMessage });
   const fetchAgents = async () => {
     const userId = getUserIdFromCookies();
     if (!userId) {
@@ -189,7 +189,7 @@ export function AgentsPage() {
             })}
           </div>
         )}
-       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Create New Agent</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -200,11 +200,29 @@ export function AgentsPage() {
                 type="text"
                 id="name"
                 value={newAgent.name}
-                onChange={(e) => setNewAgent({ ...newAgent, name: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const isValid = /^[a-zA-Z0-9_-]{0,100}$/.test(value);
+                  if (isValid) {
+                    setNewAgent({ ...newAgent, name: value });
+                    setErrorMessage('');
+                  } else {
+                    setErrorMessage(
+                      'Invalid name. Use only a-z, A-Z, 0-9, _ (underscore), and - (hyphen), and keep it under 100 characters.'
+                    );
+                  }
+                }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen). The name can have up to 100 characters.
+              </p>
+              {errorMessage && (
+                <p className="text-sm text-red-600 mt-1">{errorMessage}</p>
+              )}
             </div>
+
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
                 Description
