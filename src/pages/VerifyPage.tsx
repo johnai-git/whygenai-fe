@@ -23,7 +23,8 @@ export function VerifyPage() {
     setSuccessMessage('');
   
     try {
-      const response = await fetch('http://54.243.34.91:8000/verify-code/', {
+      const response = await fetch('http://127.0.0.1:8000/verify-code/', {
+      // const response = await fetch('http://54.243.34.91:8000/verify-code/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
