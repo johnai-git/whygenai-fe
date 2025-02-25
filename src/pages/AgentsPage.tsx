@@ -83,7 +83,7 @@ export function AgentsPage() {
     setErrorMessage(''); // Clear previous errors
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/create-agent', {
+      const response = await fetch('http://127.0.0.1:8000/create-agent-new', {
         // const response = await fetch('http://54.243.34.91:8000/create-agent', {
         method: 'POST',
         headers: {
