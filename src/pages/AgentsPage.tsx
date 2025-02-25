@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Bot, ChevronDown } from 'lucide-react';
 import { Modal } from '../components/Modal';
 import { FileUpload } from '../components/FileUpload';
-import { uploadFile } from '../services/fileService';
+// import { UploadFile } from '../services/fileService';
 import { Agent } from '../types/agent';
 import { ToastContainer, toast } from 'react-toastify';
 
 export function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [message, setMessage] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [newAgent, setNewAgent] = useState({
     name: '',
@@ -18,7 +19,7 @@ export function AgentsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [isSuccessMessageVisible, setIsSuccessMessageVisible] = useState(false); // Success message state
+  const [isSuccessMessageisible, setIsSuccessMessageVisible] = useState(false); // Success message state
 
   const getUserIdFromCookies = (): string | null => {
     const value = `; ${document.cookie}`;
@@ -38,8 +39,8 @@ export function AgentsPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://54.243.34.91:8000/user-agents/${userId}`);
-      // const response = await fetch(`http://127.0.0.1:8001/user-agents/${userId}`);
+      // const response = await fetch(`http://54.243.34.91:8000/user-agents/${userId}`);
+      const response = await fetch(`http://127.0.0.1:8000/user-agents/${userId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch agents');
       }
@@ -81,8 +82,8 @@ export function AgentsPage() {
     setErrorMessage(''); // Clear previous errors
 
     try {
-      // const response = await fetch('http://127.0.0.1:8001/create-agent', {
-      const response = await fetch('http://54.243.34.91:8000/create-agent', {
+      const response = await fetch('http://127.0.0.1:8000/create-agent', {
+        // const response = await fetch('http://54.243.34.91:8000/create-agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,14 +118,20 @@ export function AgentsPage() {
     }
   };
 
-  const handleFileUpload = async (agentId: string, file: File) => {
-    try {
-      await uploadFile(agentId, file);
-    } catch (error) {
-      console.error('Error uploading file:', error);
-    }
+  const handleFileUpload = (bucket_name: string, file: File) => {
+    setAgents((prevAgents) =>
+      prevAgents.map((agent) =>
+        agent.s3_bucket === bucket_name ? { ...agent, file_name: file.name } : agent
+      )
+    );
   };
 
+
+  const handleChat = (bucket_name: string, file: string, text: string) => {
+    console.log(bucket_name);
+    console.log(file);
+    console.log(text);
+}
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
@@ -166,27 +173,40 @@ export function AgentsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {agents.map((agent) => {
-              return (
-                <div
-                  key={agent?.agent_id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition duration-200"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-indigo-50 p-2 rounded-lg">
-                      <Bot className="w-6 h-6 text-indigo-600" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900">{agent.agent_name}</h3>
+            {agents.map((agent) => (
+              <div key={agent.agent_id} className="bg-white rounded-lg shadow-sm border p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-indigo-50 p-2 rounded-lg">
+                    <Bot className="w-6 h-6 text-indigo-600" />
                   </div>
-                  <p className="text-gray-700 mb-4 leading-relaxed">{agent.s3_bucket}</p>
-                  <div className="border-t border-gray-100 pt-4">
-                    <p className="text-sm font-medium text-gray-600 mb-2">S3 Bucket:</p>
-                    <p className="text-gray-800 bg-gray-50 p-3 rounded-lg text-sm">{agent.s3_bucket}</p>
-                  </div>
-                  <FileUpload bucket_name={agent.s3_bucket} onFileSelect={handleFileUpload} />
+                  <h3 className="text-xl font-semibold text-gray-900">{agent.agent_name}</h3>
                 </div>
-              );
-            })}
+                <p className="text-gray-700 mb-4">{agent.s3_bucket}</p>
+
+                <div className="border-t border-gray-100 pt-4">
+                  <p className="text-sm font-medium text-gray-600 mb-2">S3 Bucket:</p>
+                  <p className="text-gray-800 bg-gray-50 p-3 rounded-lg text-sm">{agent.s3_bucket}</p>
+                </div>
+
+                {agent.file_name ? (
+                  <div className="mt-4">
+                    <input
+                    value={message}
+                    onChange={(e)=>setMessage(e.target.value)}
+                      type="text"
+                      className="border rounded-md px-3 py-2 w-full"
+                    />
+                    <button className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md" onClick={() => handleChat(agent.s3_bucket,"agent.file_name",message)}>
+                      chat
+                    </button>
+                  </div>
+                ) : (
+                  <FileUpload bucket_name={agent.s3_bucket} onFileSelect={handleFileUpload} />
+                )}
+              </div>
+            ))}
+
+
           </div>
         )}
         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>

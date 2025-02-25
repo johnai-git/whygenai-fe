@@ -21,8 +21,8 @@ export function FileUpload({ bucket_name, onFileSelect }: FileUploadProps) {
       console.log({ bucket_name })
 
       try {
-        const response = await fetch('http://54.243.34.91:8000/upload/', {
-          // const response = await fetch('http://127.0.0.1:8000/upload/', {
+        // const response = await fetch('http://54.243.34.91:8000/upload/', {
+          const response = await fetch('http://127.0.0.1:8000/upload/', {
           method: 'POST',
           body: formData, // Include the FormData with both file and bucket name
         });
