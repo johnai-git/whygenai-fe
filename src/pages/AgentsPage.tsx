@@ -16,6 +16,8 @@ export function AgentsPage() {
     description: '',
     welcome_message: '',
   });
+  const [messages, setMessages] = useState<Record<string, string>>({});
+
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -127,10 +129,32 @@ export function AgentsPage() {
   };
 
 
-  const handleChat = (bucket_name: string, file: string, text: string) => {
-    console.log(bucket_name);
-    console.log(file);
-    console.log(text);
+  const handleChat = async (bucket_name: string, file_name: string, input_text: string) => {
+    try {
+      // const response = await fetch(`http://54.243.34.91:8000/user-agents/${userId}`);
+      const data ={
+        // bucket_name: bucket_name,
+        // file_name: file_name,
+        document_uri:`s3://${bucket_name}/${file_name}`,
+        input_text: input_text
+      }
+      // const response = await fetch(`http://127.0.0.1:8000/user-agents/${userId}`);
+      const response = await fetch('http://127.0.0.1:8001/retrieve_and_generate', {
+        // const response = await fetch('http://54.243.34.91:8000/create-agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch agents');
+      }
+    } catch (error) {
+      console.error('Error fetching agents:', error);
+    } finally {
+      setIsLoading(false);
+    }
 }
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -191,12 +215,20 @@ export function AgentsPage() {
                 {agent.file_name ? (
                   <div className="mt-4">
                     <input
-                    value={message}
-                    onChange={(e)=>setMessage(e.target.value)}
+                     value={messages[agent.agent_id] || ''}
+                     onChange={(e) => setMessages({
+                       ...messages,
+                       [agent.agent_id]: e.target.value
+                     })}
+                    // value={message}
+                    // onChange={(e)=>setMessage(e.target.value)}
                       type="text"
                       className="border rounded-md px-3 py-2 w-full"
                     />
-                    <button className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md" onClick={() => handleChat(agent.s3_bucket,"agent.file_name",message)}>
+                    <button className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md" 
+                    // onClick={() => handleChat(agent.s3_bucket,"agent.file_name",message)}
+                    onClick={() => handleChat(agent.s3_bucket, 'ApartmentManagementSystem.docx' , messages[agent.agent_id] || '')}
+                    >
                       chat
                     </button>
                   </div>
