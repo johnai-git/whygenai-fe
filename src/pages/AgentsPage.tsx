@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Bot, ChevronDown } from 'lucide-react';
 import { Modal } from '../components/Modal';
 import { FileUpload } from '../components/FileUpload';
-// import { UploadFile } from '../services/fileService';
 import { Agent } from '../types/agent';
 import { ToastContainer, toast } from 'react-toastify';
 
 export function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [message, setMessage] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [newAgent, setNewAgent] = useState({
     name: '',
@@ -133,8 +131,6 @@ export function AgentsPage() {
     try {
       // const response = await fetch(`http://54.243.34.91:8000/user-agents/${userId}`);
       const data ={
-        // bucket_name: bucket_name,
-        // file_name: file_name,
         document_uri:`s3://${bucket_name}/${file_name}`,
         input_text: input_text
       }
