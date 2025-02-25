@@ -14,7 +14,7 @@ export function AgentsPage() {
     description: '',
     welcome_message: '',
   });
-  const [messages, setMessages] = useState<Record<string, string>>({});
+  // const [messages, setMessages] = useState<Record<string, string>>({});
 
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
@@ -128,31 +128,31 @@ export function AgentsPage() {
   };
 
 
-  const handleChat = async (bucket_name: string, file_name: string, input_text: string) => {
-    try {
-      // const response = await fetch(`http://54.243.34.91:8000/user-agents/${userId}`);
-      const data = {
-        document_uri: `s3://${bucket_name}/${file_name}`,
-        input_text: input_text
-      }
-      // const response = await fetch(`http://127.0.0.1:8000/user-agents/${userId}`);
-      const response = await fetch('http://127.0.0.1:8000/retrieve_and_generate', {
-        // const response = await fetch('http://54.243.34.91:8000/create-agent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch agents');
-      }
-    } catch (error) {
-      console.error('Error fetching agents:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  // const handleChat = async (bucket_name: string, file_name: string, input_text: string) => {
+  //   try {
+  //     // const response = await fetch(`http://54.243.34.91:8000/user-agents/${userId}`);
+  //     const data = {
+  //       document_uri: `s3://${bucket_name}/${file_name}`,
+  //       input_text: input_text
+  //     }
+  //     // const response = await fetch(`http://127.0.0.1:8000/user-agents/${userId}`);
+  //     const response = await fetch('http://127.0.0.1:8000/retrieve_and_generate', {
+  //       // const response = await fetch('http://54.243.34.91:8000/create-agent', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(data),
+  //     });
+  //     if (!response.ok) {
+  //       throw new Error('Failed to fetch agents');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching agents:', error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [chatMessage, setChatMessage] = useState('');
@@ -205,19 +205,19 @@ export function AgentsPage() {
   // };
   const handleSendMessage = async () => {
     if (!selectedAgentId || !chatMessage.trim()) return;
-  
+
     const agent = agents.find(a => a.agent_id === selectedAgentId);
     if (!agent) return;
-  
+
     // Add the user's message immediately
     setChatMessages(prevMessages => [
       ...prevMessages,
       { sender: 'user', message: chatMessage },
     ]);
     setChatMessage(''); // Clear the input field
-  
+
     setIsChatLoading(true); // Show loader while waiting for the API response
-  
+
     try {
       const response = await fetch('http://127.0.0.1:8000/retrieve_and_generate', {
         method: 'POST',
@@ -229,13 +229,13 @@ export function AgentsPage() {
           input_text: chatMessage,
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error('Failed to send message');
       }
-  
+
       const data = await response.json();
-  
+
       // Add the bot's response to the chat
       setChatMessages(prevMessages => [
         ...prevMessages,
@@ -311,7 +311,7 @@ export function AgentsPage() {
 
                 {agent.file_name ? (
                   <div className="mt-4">
-                    <input
+                    {/* <input
                       value={messages[agent.agent_id] || ''}
                       onChange={(e) => setMessages({
                         ...messages,
@@ -327,7 +327,7 @@ export function AgentsPage() {
                       onClick={() => handleChat(agent.s3_bucket, 'ApartmentManagementSystem.docx', messages[agent.agent_id] || '')}
                     >
                       chat
-                    </button>
+                    </button> */}
                     <button
                       onClick={() => openChatModal(agent.agent_id)}
                       className="mt-4 bg-green-500 text-white px-4 py-2 rounded-md"
@@ -465,44 +465,44 @@ export function AgentsPage() {
         </div>
       </Modal> */}
       <Modal isOpen={isChatModalOpen} onClose={closeChatModal}>
-  <h2 className="text-2xl font-bold text-gray-800 mb-4">Chat with Agent</h2>
-  <div className="h-96 overflow-y-auto mb-4">
-    {chatMessages.map((msg, index) => (
-      <div key={index} className={`mb-2 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}>
-        <span className={`inline-block px-4 py-2 rounded-lg ${msg.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
-          {msg.message}
-        </span>
-      </div>
-    ))}
-    {/* Show a loader while waiting for the API response */}
-    {isChatLoading && (
-      <div className="text-left">
-        <div className="inline-block px-4 py-2 bg-gray-200 text-gray-800 rounded-lg">
-          <div className="flex items-center">
-            <div className="w-4 h-4 border-2 border-gray-400 border-t-2 border-t-transparent rounded-full animate-spin"></div>
-            <span className="ml-2">Thinking...</span>
-          </div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Chat with Agent</h2>
+        <div className="h-96 overflow-y-auto mb-4">
+          {chatMessages.map((msg, index) => (
+            <div key={index} className={`mb-2 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}>
+              <span className={`inline-block px-4 py-2 rounded-lg ${msg.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
+                {msg.message}
+              </span>
+            </div>
+          ))}
+          {/* Show a loader while waiting for the API response */}
+          {isChatLoading && (
+            <div className="text-left">
+              <div className="inline-block px-4 py-2 bg-gray-200 text-gray-800 rounded-lg">
+                <div className="flex items-center">
+                  <div className="w-4 h-4 border-2 border-gray-400 border-t-2 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="ml-2">Thinking...</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-    )}
-  </div>
-  <div className="flex gap-2">
-    <input
-      type="text"
-      value={chatMessage}
-      onChange={(e) => setChatMessage(e.target.value)}
-      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-      placeholder="Type a message..."
-    />
-    <button
-      onClick={handleSendMessage}
-      disabled={isChatLoading} // Disable the button while loading
-      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-indigo-300"
-    >
-      Send
-    </button>
-  </div>
-</Modal>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={chatMessage}
+            onChange={(e) => setChatMessage(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Type a message..."
+          />
+          <button
+            onClick={handleSendMessage}
+            disabled={isChatLoading} // Disable the button while loading
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-indigo-300"
+          >
+            Send
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
