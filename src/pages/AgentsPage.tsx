@@ -135,8 +135,8 @@ export function AgentsPage() {
         input_text: input_text
       }
       // const response = await fetch(`http://127.0.0.1:8000/user-agents/${userId}`);
-      const response = await fetch('http://127.0.0.1:8001/retrieve_and_generate', {
-        // const response = await fetch('http://54.243.34.91:8000/create-agent', {
+      const response = await fetch('http://127.0.0.1:8000/retrieve_and_generate', {
+      // const response = await fetch('http://54.243.34.91:8000/create-agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
